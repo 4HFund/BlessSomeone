@@ -1,0 +1,1002 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blessing Quest | The Foundery Church</title>
+    <style>
+        /* CSS Variables - Foundery Cinematic Palette */
+        :root {
+            --navy: #0B1325;
+            --navy-light: #152238;
+            --steel-blue: #23395B;
+            --steel-blue-light: #345487;
+            --light-blue: #8AB4F8;
+            --gold: #F5A623;
+            --gold-glow: rgba(245, 166, 35, 0.4);
+            --orange: #E65100;
+            --orange-glow: rgba(230, 81, 0, 0.4);
+            --cream: #FCF9F2;
+            --white: #FFFFFF;
+            --text-muted: #A0B2C6;
+            
+            --font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            --radius-md: 12px;
+            --radius-lg: 20px;
+            --radius-pill: 9999px;
+            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        /* Base Styles */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--navy);
+            color: var(--white);
+            line-height: 1.5;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            /* Subtle grid texture */
+            background-image: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 30px 30px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 24px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* Screen Management */
+        .screen {
+            display: none;
+            flex-direction: column;
+            flex: 1;
+            animation: fadeIn 0.5s ease forwards;
+        }
+        
+        .screen.active {
+            display: flex;
+        }
+
+        .screen.fade-out {
+            animation: fadeOut 0.4s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeOut {
+            from { opacity: 1; transform: translateY(0); }
+            to { opacity: 0; transform: translateY(-10px); }
+        }
+
+        /* Typography */
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--cream);
+            line-height: 1.1;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            color: var(--gold);
+            text-align: center;
+            font-weight: 600;
+            margin-bottom: 24px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        p {
+            color: var(--text-muted);
+            margin-bottom: 20px;
+            font-size: 1.05rem;
+        }
+
+        .text-center { text-align: center; }
+
+        /* Badges */
+        .badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 32px;
+        }
+
+        .badge {
+            background: var(--navy-light);
+            border: 1px solid var(--steel-blue);
+            color: var(--light-blue);
+            padding: 6px 14px;
+            border-radius: var(--radius-pill);
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            padding: 16px 24px;
+            border-radius: var(--radius-pill);
+            font-size: 1.1rem;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--orange), var(--gold));
+            color: var(--navy);
+            box-shadow: 0 4px 15px var(--orange-glow);
+        }
+
+        .btn-primary:active {
+            transform: scale(0.98);
+            box-shadow: 0 2px 10px var(--orange-glow);
+        }
+
+        .btn-secondary {
+            background: var(--steel-blue);
+            color: var(--white);
+            border: 1px solid var(--steel-blue-light);
+            margin-top: 12px;
+        }
+        
+        .btn-secondary:active {
+            background: var(--steel-blue-light);
+        }
+
+        /* Mission Selector / Wheel */
+        .selector-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .mission-card {
+            background: var(--navy-light);
+            border: 2px solid var(--steel-blue);
+            border-radius: var(--radius-lg);
+            padding: 30px 20px;
+            width: 100%;
+            text-align: center;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            transition: var(--transition);
+        }
+
+        .mission-card.spinning {
+            border-color: var(--gold);
+            box-shadow: 0 0 20px var(--gold-glow);
+            animation: pulse 0.5s infinite alternate;
+        }
+
+        .mission-card.locked {
+            border-color: var(--orange);
+            box-shadow: 0 0 30px var(--orange-glow);
+            background: linear-gradient(to bottom, var(--navy-light), var(--steel-blue));
+        }
+
+        #mission-title {
+            font-size: 1.8rem;
+            color: var(--cream);
+            font-weight: 800;
+            margin-bottom: 12px;
+        }
+
+        #mission-desc {
+            color: var(--light-blue);
+            font-size: 1.1rem;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.02); }
+        }
+
+        /* Quiz UI */
+        .progress-container {
+            width: 100%;
+            height: 6px;
+            background: var(--navy-light);
+            border-radius: var(--radius-pill);
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--orange), var(--gold));
+            width: 0%;
+            transition: width 0.4s ease;
+        }
+
+        .round-label {
+            color: var(--gold);
+            font-weight: 700;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .question-title {
+            font-size: 1.8rem;
+            color: var(--cream);
+            margin-bottom: 6px;
+            line-height: 1.2;
+        }
+
+        .question-subtitle {
+            color: var(--light-blue);
+            margin-bottom: 24px;
+            font-size: 1rem;
+        }
+
+        .options-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding-bottom: 40px;
+        }
+
+        .option-card {
+            background: var(--navy-light);
+            border: 1px solid var(--steel-blue);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            cursor: pointer;
+            transition: var(--transition);
+            text-align: left;
+        }
+
+        .option-card:hover, .option-card:active {
+            border-color: var(--light-blue);
+            background: var(--steel-blue);
+            transform: translateY(-2px);
+        }
+
+        .option-title {
+            font-size: 1.1rem;
+            color: var(--white);
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .option-desc {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        /* Results Screen */
+        .result-header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .result-card {
+            background: var(--cream);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            color: var(--navy);
+            text-align: center;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            position: relative;
+        }
+        
+        .result-style {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--orange);
+            line-height: 1.1;
+            margin-bottom: 16px;
+        }
+
+        .result-trait {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--steel-blue);
+            margin-bottom: 4px;
+        }
+        
+        .result-desc {
+            color: var(--navy-light);
+            font-style: italic;
+            margin-bottom: 20px;
+            font-size: 1.05rem;
+        }
+
+        .challenge-box {
+            background: rgba(230, 81, 0, 0.1);
+            border: 1px solid rgba(230, 81, 0, 0.2);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            margin-top: 20px;
+        }
+
+        .challenge-label {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--orange);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+        }
+
+        .challenge-text {
+            font-weight: 600;
+            color: var(--navy);
+            font-size: 1.1rem;
+        }
+
+        /* Kindness Meter */
+        .meter-section {
+            margin-bottom: 30px;
+        }
+
+        .meter-title {
+            font-size: 1.2rem;
+            color: var(--cream);
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .meter-item {
+            margin-bottom: 12px;
+        }
+
+        .meter-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            color: var(--light-blue);
+            margin-bottom: 4px;
+            font-weight: 600;
+        }
+
+        .meter-track {
+            height: 8px;
+            background: var(--navy-light);
+            border-radius: var(--radius-pill);
+            overflow: hidden;
+        }
+
+        .meter-fill {
+            height: 100%;
+            background: var(--light-blue);
+            border-radius: var(--radius-pill);
+            width: 0%;
+            transition: width 1s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        /* Specific meter colors */
+        .meter-fill.awareness { background: #8AB4F8; }
+        .meter-fill.compassion { background: #F5A623; }
+        .meter-fill.generosity { background: #E65100; }
+        .meter-fill.faith { background: #FCF9F2; }
+        .meter-fill.creativity { background: #345487; }
+        .meter-fill.service { background: #A0B2C6; }
+
+        .encouragement {
+            text-align: center;
+            font-style: italic;
+            color: var(--gold);
+            margin-bottom: 24px;
+            font-size: 1.1rem;
+        }
+
+        /* Toast Message */
+        #toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--cream);
+            color: var(--navy);
+            padding: 12px 24px;
+            border-radius: var(--radius-pill);
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease;
+            opacity: 0;
+            z-index: 1000;
+        }
+
+        #toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    
+    <!-- Screen 1: Start -->
+    <div id="screen-start" class="screen active">
+        <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+            <div class="badges">
+                <span class="badge">Replayable</span>
+                <span class="badge">60 Seconds</span>
+                <span class="badge">Custom Result</span>
+                <span class="badge">Real Impact</span>
+            </div>
+            
+            <h1>Blessing Quest</h1>
+            <div class="subtitle">Discover Your Blessing Style</div>
+            
+            <p class="text-center" style="max-width: 400px; margin: 0 auto 40px auto; font-size: 1.15rem;">
+                Take a 60-second kindness challenge, unlock a custom blessing profile, and nominate someone who could use encouragement this week.
+            </p>
+            
+            <button class="btn btn-primary" onclick="goToScreen('screen-wheel')">Start My Quest</button>
+        </div>
+    </div>
+
+    <!-- Screen 2: Spin the Wheel -->
+    <div id="screen-wheel" class="screen">
+        <div class="selector-container">
+            <div class="round-label text-center">Your First Step</div>
+            <h2 class="question-title text-center" style="margin-bottom: 30px;">Unlock a Mission</h2>
+            
+            <div class="mission-card" id="mission-card">
+                <div id="mission-title">Ready?</div>
+                <div id="mission-desc">Tap below to receive your randomized kindness mission.</div>
+            </div>
+            
+            <button id="btn-spin" class="btn btn-primary" style="margin-top: 40px;" onclick="spinWheel()">Spin the Wheel</button>
+            <button id="btn-continue-wheel" class="btn btn-primary" style="margin-top: 40px; display: none;" onclick="goToScreen('screen-quiz')">Continue Quest</button>
+        </div>
+    </div>
+
+    <!-- Screen 3: Quiz -->
+    <div id="screen-quiz" class="screen">
+        <div class="progress-container">
+            <div class="progress-bar" id="quiz-progress"></div>
+        </div>
+        
+        <div id="quiz-header">
+            <div class="round-label" id="round-label">Round 1</div>
+            <h2 class="question-title" id="question-title">Question</h2>
+            <div class="question-subtitle" id="question-subtitle">Subtitle</div>
+        </div>
+
+        <div class="options-grid" id="options-grid">
+            <!-- Options injected via JS -->
+        </div>
+    </div>
+
+    <!-- Screen 4: Results -->
+    <div id="screen-result" class="screen">
+        <div class="result-header">
+            <div class="round-label">Quest Complete</div>
+            <h2 class="question-title">Your Profile</h2>
+        </div>
+
+        <div class="result-card">
+            <div class="result-trait" id="res-trait">HEART TYPE</div>
+            <div class="result-style" id="res-style">Style Title</div>
+            <div class="result-desc" id="res-desc">Description line.</div>
+            
+            <div class="challenge-box">
+                <div class="challenge-label">Your Next Step</div>
+                <div class="challenge-text" id="res-challenge">Challenge text goes here.</div>
+            </div>
+        </div>
+
+        <div class="encouragement" id="res-encouragement">
+            "Small kindness can carry big hope."
+        </div>
+
+        <div class="meter-section">
+            <h3 class="meter-title">Kindness Meter</h3>
+            <div id="meter-container">
+                <!-- Meters injected via JS -->
+            </div>
+        </div>
+
+        <div style="margin-bottom: 40px;">
+            <button class="btn btn-primary" onclick="openForm()">Nominate Someone Now</button>
+            <button class="btn btn-secondary" onclick="copyResult()">Copy My Result</button>
+            <button class="btn btn-secondary" style="background: transparent; border: none; color: var(--text-muted); margin-top: 20px;" onclick="resetGame()">Play Again</button>
+        </div>
+    </div>
+
+</div>
+
+<!-- Toast for Copy -->
+<div id="toast">Result copied to clipboard!</div>
+
+<script>
+    // --- DATA ---
+    const wheelMissions = [
+        { title: "Secret Blessing", desc: "Bless someone quietly who may never ask for help." },
+        { title: "Joy Bomb", desc: "Bring surprise joy to someone carrying a heavy week." },
+        { title: "Faith Boost", desc: "Encourage someone with prayer, hope, and a reminder that they are not alone." },
+        { title: "Hidden Hero", desc: "Honor someone who serves others but rarely gets noticed." },
+        { title: "Practical Help", desc: "Lift pressure with groceries, gas, a meal, or essentials." },
+        { title: "Kindness Note", desc: "Use words to remind someone they are seen and loved." },
+        { title: "Table Builder", desc: "Help someone feel included, welcomed, and remembered." },
+        { title: "Comeback Spark", desc: "Encourage someone trying to rebuild, recover, or start fresh." }
+    ];
+
+    const quizData = [
+        {
+            round: "Round 1: The Heart Check",
+            title: "Who catches your heart first?",
+            subtitle: "Think about your church, workplace, neighborhood, school, or family.",
+            options: [
+                { title: "The person sitting alone", desc: "Someone who might feel invisible.", heart: { Connector: 2, Listener: 2 }, meter: { Awareness: 2 }, focus: "the Overlooked" },
+                { title: "The parent who looks exhausted", desc: "Someone carrying pressure at home.", heart: { Protector: 2, Provider: 1 }, meter: { Compassion: 2 }, focus: "Families Under Pressure" },
+                { title: "The one who keeps serving", desc: "Someone who gives a lot but rarely receives.", heart: { Encourager: 2, Restorer: 1 }, meter: { Awareness: 2 }, focus: "Hidden Heroes" },
+                { title: "The person walking through loss", desc: "Someone grieving or healing.", heart: { Intercessor: 2, Listener: 2 }, meter: { Compassion: 2 }, focus: "the Heavy-Hearted" },
+                { title: "The family with practical needs", desc: "Someone who could use real support.", heart: { Provider: 3 }, meter: { Service: 2, Generosity: 2 }, focus: "Families Under Pressure" },
+                { title: "The person who seems new", desc: "Someone who needs welcome and connection.", heart: { Connector: 3, Uplifter: 1 }, meter: { Awareness: 2 }, focus: "New Beginnings" },
+                { title: "The friend hiding pain behind jokes", desc: "Someone who smiles but may be struggling.", heart: { Restorer: 2, Listener: 2 }, meter: { Compassion: 2 }, focus: "the Ones Who Never Ask" },
+                { title: "The person I feel led to pray for", desc: "Someone God keeps bringing to mind.", heart: { Intercessor: 3 }, meter: { Faith: 3, Compassion: 1 }, focus: "the Heavy-Hearted" }
+            ]
+        },
+        {
+            round: "Round 2: The Blessing Move",
+            title: "What would you naturally do first?",
+            subtitle: "Pick the action that feels most like you.",
+            options: [
+                { title: "Send a text, card, or note", desc: "Words of life are your first move.", heart: { Encourager: 3 }, meter: { Awareness: 1 }, method: "Words" },
+                { title: "Drop off food or a small gift", desc: "You like making kindness tangible.", heart: { Provider: 2 }, meter: { Generosity: 3 }, method: "Provision" },
+                { title: "Pray for them or with them", desc: "You carry people spiritually.", heart: { Intercessor: 3 }, meter: { Faith: 3 }, method: "Prayer" },
+                { title: "Sit and really listen", desc: "You give people space to be heard.", heart: { Listener: 3 }, meter: { Compassion: 2 }, method: "Presence" },
+                { title: "Help with an errand or task", desc: "You take pressure off their plate.", heart: { }, meter: { Service: 3, Protector: 2 }, method: "Service" }, // Note: Protector in meter mapped to heart below
+                { title: "Make them laugh", desc: "You bring lightness into heavy places.", heart: { Uplifter: 3 }, meter: { Creativity: 1 }, method: "Joy" },
+                { title: "Invite them to something", desc: "You help people feel included.", heart: { Connector: 3 }, meter: { Awareness: 1 }, method: "Connection" },
+                { title: "Create something personal", desc: "You make encouragement feel custom.", heart: { Encourager: 1 }, meter: { Creativity: 3 }, method: "Creativity" }
+            ]
+        },
+        {
+            round: "Round 3: The Mission Pull",
+            title: "What kind of need moves you most?",
+            subtitle: "There are no wrong answers. This just reveals your pull.",
+            options: [
+                { title: "Someone feels forgotten", desc: "You want them to know they matter.", heart: { Encourager: 2 }, meter: { Awareness: 3 }, focus: "the Overlooked" },
+                { title: "Someone needs groceries or essentials", desc: "You want to meet a practical need.", heart: { Provider: 3 }, meter: { Generosity: 2 }, focus: "Families Under Pressure" },
+                { title: "Someone is grieving", desc: "You want to bring comfort and prayer.", heart: { Intercessor: 2, Listener: 2 }, meter: { Compassion: 3 }, focus: "the Grieving" },
+                { title: "Someone is overwhelmed", desc: "You want to lift the load.", heart: { Protector: 2 }, meter: { Service: 2, Compassion: 2 }, focus: "the Weary" },
+                { title: "Someone is lonely", desc: "You want to help them feel connected.", heart: { Connector: 3, Listener: 1 }, meter: { }, focus: "the Lonely" },
+                { title: "Someone needs faith encouragement", desc: "You want to point them back to hope.", heart: { Intercessor: 2, Restorer: 2 }, meter: { Faith: 3 }, focus: "the Heavy-Hearted" },
+                { title: "Someone always gives but rarely receives", desc: "You notice hidden servants.", heart: { Encourager: 2 }, meter: { Awareness: 2, Generosity: 1 }, focus: "Hidden Heroes" },
+                { title: "Someone is trying to start over", desc: "You believe in comeback stories.", heart: { Restorer: 3, Protector: 1 }, meter: { Compassion: 2 }, focus: "the Comeback Story" }
+            ]
+        },
+        {
+            round: "Round 4: The Energy Match",
+            title: "How do you prefer to bless?",
+            subtitle: "This shapes your final blessing style.",
+            options: [
+                { title: "Quietly and anonymously", desc: "No attention needed.", heart: { }, meter: { Awareness: 2, Compassion: 1 }, energy: "Quiet" },
+                { title: "Personally and thoughtfully", desc: "You want it to feel meaningful.", heart: { Encourager: 1 }, meter: { Creativity: 2 }, energy: "Warm" },
+                { title: "Directly and boldly", desc: "You are not afraid to say, “I see you.”", heart: { Protector: 1, Encourager: 2 }, meter: { }, energy: "Bold" },
+                { title: "Practically and reliably", desc: "You like real help people can feel.", heart: { Provider: 2 }, meter: { Service: 2 }, energy: "Steady" },
+                { title: "Creatively and uniquely", desc: "You love personal touches.", heart: { Uplifter: 1 }, meter: { Creativity: 3 }, energy: "Creative" },
+                { title: "Prayerfully and spiritually", desc: "You want God’s hope at the center.", heart: { Intercessor: 2 }, meter: { Faith: 3 }, energy: "Faithful" },
+                { title: "Cheerfully and unexpectedly", desc: "You bring surprise joy.", heart: { Uplifter: 3 }, meter: { Generosity: 1 }, energy: "Joyful" },
+                { title: "Consistently over time", desc: "You believe steady love matters.", heart: { Restorer: 2 }, meter: { Service: 2 }, energy: "Faithful" } // Using Faithful as energy
+            ]
+        },
+        {
+            round: "Round 5: The Challenge Card",
+            title: "Pick the blessing that feels most powerful.",
+            subtitle: "This unlocks your final mission.",
+            options: [
+                { title: "A handwritten note at the perfect time", desc: "A few words can carry a lot of hope.", heart: { Encourager: 3 }, meter: { Awareness: 1 }, method: "Words" },
+                { title: "A surprise gift that makes them smile", desc: "Unexpected kindness can change the day.", heart: { Uplifter: 2 }, meter: { Generosity: 2 }, method: "Surprise" },
+                { title: "Groceries, gas, or essentials", desc: "Relief can be a blessing too.", heart: { Provider: 3 }, meter: { Generosity: 2 }, method: "Provision" },
+                { title: "Prayer and spiritual encouragement", desc: "Hope can meet people in hard places.", heart: { Intercessor: 3 }, meter: { Faith: 2 }, method: "Prayer" },
+                { title: "A visit or honest conversation", desc: "Presence can say what words cannot.", heart: { Listener: 3 }, meter: { Compassion: 1 }, method: "Presence" },
+                { title: "A private thank-you or honor moment", desc: "Hidden faithfulness deserves to be seen.", heart: { Encourager: 2, Connector: 1 }, meter: { }, method: "Celebration" },
+                { title: "A practical task taken off their plate", desc: "Service can bring peace.", heart: { }, meter: { Service: 3 }, method: "Service" }, // Heart handled dynamically if needed, keeping simple
+                { title: "A creative keepsake or personal touch", desc: "Custom kindness feels unforgettable.", heart: { Uplifter: 1 }, meter: { Creativity: 3 }, method: "Creativity" }
+            ]
+        }
+    ];
+
+    const heartProfiles = {
+        Encourager: {
+            line: "You notice when people need words of life.",
+            strength: "You help people feel seen, valued, and remembered.",
+            challenge: "Nominate someone who needs to hear that they matter more than they realize."
+        },
+        Protector: {
+            line: "You feel pulled toward people who are vulnerable or overwhelmed.",
+            strength: "You make people feel safe, supported, and not alone.",
+            challenge: "Nominate someone carrying more than people can see."
+        },
+        Provider: {
+            line: "You love turning compassion into practical help.",
+            strength: "You meet needs in ways people can actually feel.",
+            challenge: "Nominate someone who could use practical help, relief, or support this week."
+        },
+        Listener: {
+            line: "You create space for people to be heard.",
+            strength: "You slow down long enough to notice what others miss.",
+            challenge: "Nominate someone who may need to feel heard, seen, and not forgotten."
+        },
+        Uplifter: {
+            line: "You bring joy, laughter, and light into heavy places.",
+            strength: "You remind people that hope can still break through.",
+            challenge: "Nominate someone who could use a reason to smile again."
+        },
+        Intercessor: {
+            line: "You carry people in prayer.",
+            strength: "You help people remember they are held by God.",
+            challenge: "Nominate someone who needs prayer, encouragement, and hope."
+        },
+        Connector: {
+            line: "You help people feel included and remembered.",
+            strength: "You build bridges where people feel disconnected.",
+            challenge: "Nominate someone who may feel disconnected, lonely, or left out."
+        },
+        Restorer: {
+            line: "You are drawn to comeback stories.",
+            strength: "You help people believe healing and hope are still possible.",
+            challenge: "Nominate someone who is healing, rebuilding, or trying to start fresh."
+        }
+    };
+
+    const encouragements = [
+        "Small kindness can carry big hope.",
+        "Someone’s week may change because you noticed.",
+        "A blessing does not have to be big to be meaningful.",
+        "You may be the reminder someone needs that they are not alone.",
+        "Quiet love still makes a loud difference.",
+        "A simple act of kindness can become someone’s answered prayer.",
+        "Hope often starts when one person pays attention.",
+        "God can use ordinary kindness in extraordinary ways."
+    ];
+
+    // --- STATE ---
+    let currentScreen = 'screen-start';
+    let currentQuestion = 0;
+    
+    let scores = {
+        heart: { Encourager: 0, Protector: 0, Provider: 0, Listener: 0, Uplifter: 0, Intercessor: 0, Connector: 0, Restorer: 0 },
+        meter: { Awareness: 0, Compassion: 0, Generosity: 0, Faith: 0, Creativity: 0, Service: 0 }
+    };
+    
+    let attributes = {
+        focus: [],
+        method: [],
+        energy: []
+    };
+
+    let generatedResult = "";
+
+    // --- LOGIC ---
+
+    function goToScreen(screenId) {
+        const current = document.getElementById(currentScreen);
+        const next = document.getElementById(screenId);
+        
+        current.classList.add('fade-out');
+        
+        setTimeout(() => {
+            current.classList.remove('active', 'fade-out');
+            next.classList.add('active');
+            currentScreen = screenId;
+            
+            if(screenId === 'screen-quiz' && currentQuestion === 0) {
+                renderQuestion();
+            }
+        }, 400);
+    }
+
+    // Wheel Logic
+    function spinWheel() {
+        const btnSpin = document.getElementById('btn-spin');
+        const btnCont = document.getElementById('btn-continue-wheel');
+        const card = document.getElementById('mission-card');
+        const titleEl = document.getElementById('mission-title');
+        const descEl = document.getElementById('mission-desc');
+        
+        btnSpin.style.display = 'none';
+        card.classList.add('spinning');
+        
+        let spins = 0;
+        let maxSpins = 20;
+        let speed = 100;
+        
+        // Fast shuffle
+        let interval = setInterval(() => {
+            let randomMission = wheelMissions[Math.floor(Math.random() * wheelMissions.length)];
+            titleEl.innerText = randomMission.title;
+            descEl.innerText = "Scanning...";
+            
+            spins++;
+            if(spins >= maxSpins) {
+                clearInterval(interval);
+                // Final selection
+                let finalMission = wheelMissions[Math.floor(Math.random() * wheelMissions.length)];
+                titleEl.innerText = finalMission.title;
+                descEl.innerText = finalMission.desc;
+                
+                card.classList.remove('spinning');
+                card.classList.add('locked');
+                
+                setTimeout(() => {
+                    document.querySelector('#screen-wheel .round-label').innerText = "Mission Unlocked";
+                    document.querySelector('#screen-wheel .question-title').innerText = "Your Assignment";
+                    btnCont.style.display = 'inline-flex';
+                    btnCont.style.animation = "fadeIn 0.5s ease forwards";
+                }, 500);
+            }
+        }, speed);
+    }
+
+    // Quiz Logic
+    function renderQuestion() {
+        const data = quizData[currentQuestion];
+        
+        // Update headers
+        document.getElementById('round-label').innerText = data.round;
+        document.getElementById('question-title').innerText = data.title;
+        document.getElementById('question-subtitle').innerText = data.subtitle;
+        
+        // Update progress (starts at 20% for Q1)
+        document.getElementById('quiz-progress').style.width = `${((currentQuestion + 1) / 5) * 100}%`;
+
+        // Render options
+        const grid = document.getElementById('options-grid');
+        grid.innerHTML = '';
+        
+        data.options.forEach((opt, index) => {
+            const el = document.createElement('div');
+            el.className = 'option-card';
+            el.innerHTML = `
+                <div class="option-title">${opt.title}</div>
+                <div class="option-desc">${opt.desc}</div>
+            `;
+            el.onclick = () => handleAnswer(opt);
+            grid.appendChild(el);
+        });
+        
+        // Fade in
+        const qHeader = document.getElementById('quiz-header');
+        qHeader.style.animation = 'none';
+        qHeader.offsetHeight; /* trigger reflow */
+        qHeader.style.animation = 'fadeIn 0.5s ease forwards';
+        
+        grid.style.animation = 'none';
+        grid.offsetHeight; 
+        grid.style.animation = 'fadeIn 0.5s ease forwards';
+    }
+
+    function handleAnswer(opt) {
+        // Apply Heart Scores
+        if(opt.heart) {
+            for(let key in opt.heart) {
+                scores.heart[key] += opt.heart[key];
+            }
+        }
+        // Handle edge case where protector is in meter logically
+        if(opt.meter && opt.meter.Protector) {
+             scores.heart.Protector += opt.meter.Protector;
+             delete opt.meter.Protector; // clean up
+        }
+
+        // Apply Meter Scores
+        if(opt.meter) {
+            for(let key in opt.meter) {
+                scores.meter[key] += opt.meter[key];
+            }
+        }
+
+        // Store attributes
+        if(opt.focus) attributes.focus.push(opt.focus);
+        if(opt.method) attributes.method.push(opt.method);
+        if(opt.energy) attributes.energy.push(opt.energy);
+
+        // Advance
+        if(currentQuestion < 4) {
+            const grid = document.getElementById('options-grid');
+            grid.style.animation = 'fadeOut 0.3s ease forwards';
+            
+            setTimeout(() => {
+                currentQuestion++;
+                renderQuestion();
+            }, 300);
+        } else {
+            calculateResults();
+        }
+    }
+
+    // Tally Results
+    function getMostFrequent(arr) {
+        if(arr.length === 0) return "";
+        let counts = {};
+        let maxCount = 0;
+        let maxItem = arr[0];
+        
+        for(let item of arr) {
+            counts[item] = (counts[item] || 0) + 1;
+            if(counts[item] >= maxCount) { // >= ensures we take latest on tie
+                maxCount = counts[item];
+                maxItem = item;
+            }
+        }
+        return maxItem;
+    }
+
+    function calculateResults() {
+        // 1. Determine Heart Type (Max Score)
+        let topHeartType = "Encourager";
+        let maxHeartScore = -1;
+        for(let key in scores.heart) {
+            if(scores.heart[key] > maxHeartScore) {
+                maxHeartScore = scores.heart[key];
+                topHeartType = key;
+            }
+        }
+
+        // 2. Extract traits
+        const energy = getMostFrequent(attributes.energy) || "Warm";
+        const focus = getMostFrequent(attributes.focus) || "the Overlooked";
+        
+        // 3. Build Formula: Energy + Heart Type + Mission Focus
+        const styleTitle = `${energy} ${topHeartType} for ${focus}`;
+        generatedResult = styleTitle;
+
+        // 4. Update Result UI
+        document.getElementById('res-style').innerText = styleTitle;
+        document.getElementById('res-trait').innerText = `HEART TYPE: ${topHeartType.toUpperCase()}`;
+        document.getElementById('res-desc').innerHTML = `
+            <strong>${heartProfiles[topHeartType].line}</strong><br>
+            ${heartProfiles[topHeartType].strength}
+        `;
+        document.getElementById('res-challenge').innerText = heartProfiles[topHeartType].challenge;
+        
+        // Random encouragement
+        const randEnc = encouragements[Math.floor(Math.random() * encouragements.length)];
+        document.getElementById('res-encouragement').innerText = `"${randEnc}"`;
+
+        // 5. Build Meters
+        const meterContainer = document.getElementById('meter-container');
+        meterContainer.innerHTML = '';
+        
+        // Max theoretical points roughly 9-10. We'll divide by 8 for a nice visual scale, capped at 100%.
+        const maxMeterValue = 8; 
+        
+        for(let key in scores.meter) {
+            let val = scores.meter[key];
+            let percent = Math.min((val / maxMeterValue) * 100, 100);
+            
+            // Give a baseline of 15% so bars aren't empty
+            if(percent < 15) percent = 15 + (Math.random() * 10); 
+
+            const item = document.createElement('div');
+            item.className = 'meter-item';
+            item.innerHTML = `
+                <div class="meter-label">
+                    <span>${key}</span>
+                </div>
+                <div class="meter-track">
+                    <div class="meter-fill ${key.toLowerCase()}" style="width: 0%" data-target="${percent}%"></div>
+                </div>
+            `;
+            meterContainer.appendChild(item);
+        }
+
+        // Navigate and animate meters
+        goToScreen('screen-result');
+        
+        setTimeout(() => {
+            const fills = document.querySelectorAll('.meter-fill');
+            fills.forEach(fill => {
+                fill.style.width = fill.getAttribute('data-target');
+            });
+        }, 600);
+    }
+
+    // Actions
+    function openForm() {
+        window.open('https://thefounderychurch.churchcenter.com/people/forms/1070525', '_blank');
+    }
+
+    function copyResult() {
+        const textToCopy = `I took the Blessing Quest and got: ${generatedResult}. Take the challenge and nominate someone for a blessing: https://thefounderychurch.churchcenter.com/people/forms/1070525`;
+        
+        // Try modern clipboard API first, fallback to execCommand
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(textToCopy).then(showToast);
+        } else {
+            // Fallback
+            let textArea = document.createElement("textarea");
+            textArea.value = textToCopy;
+            textArea.style.position = "fixed";
+            textArea.style.left = "-999999px";
+            textArea.style.top = "-999999px";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                showToast();
+            } catch (err) {
+                console.error('Copy fallback failed', err);
+            }
+            textArea.remove();
+        }
+    }
+
+    function showToast() {
+        const toast = document.getElementById('toast');
+        toast.classList.add('show');
+        setTimeout(() => {
+            toast.classList.remove('show');
+        }, 3000);
+    }
+
+    function resetGame() {
+        // Reset state
+        currentQuestion = 0;
+        scores = {
+            heart: { Encourager: 0, Protector: 0, Provider: 0, Listener: 0, Uplifter: 0, Intercessor: 0, Connector: 0, Restorer: 0 },
+            meter: { Awareness: 0, Compassion: 0, Generosity: 0, Faith: 0, Creativity: 0, Service: 0 }
+        };
+        attributes = { focus: [], method: [], energy: [] };
+        
+        // Reset Wheel UI
+        const btnSpin = document.getElementById('btn-spin');
+        const btnCont = document.getElementById('btn-continue-wheel');
+        const card = document.getElementById('mission-card');
+        const titleEl = document.getElementById('mission-title');
+        const descEl = document.getElementById('mission-desc');
+        
+        btnSpin.style.display = 'inline-flex';
+        btnCont.style.display = 'none';
+        card.classList.remove('locked');
+        titleEl.innerText = "Ready?";
+        descEl.innerText = "Tap below to receive your randomized kindness mission.";
+        document.querySelector('#screen-wheel .round-label').innerText = "Your First Step";
+        document.querySelector('#screen-wheel .question-title').innerText = "Unlock a Mission";
+
+        // Go to start
+        goToScreen('screen-start');
+    }
+
+</script>
+</body>
+</html>
+
+```
